@@ -2,9 +2,9 @@
 Toolchain to preprocess google docs for import into Notion
 
 The Notion import tool is quite fragile and does not support many file formats. 
-uW Google docs have some unsupported formats
-This package converts google docs to files that Notion imports
-The google docs download retains the original folder structure but Notion does not
+uW Google docs have some unsupported formats.
+This package converts google docs to files that Notion imports.
+The google docs download retains the original folder structure but Notion does not.
 
 This utility prefixes the filename with their path so that a notion user can recreate the original folder structure as Notion pages.
 The following file types are supported.
@@ -19,14 +19,14 @@ The following file types are supported.
 - Unzip the downloaded files into a folder like: sharedTraining
 - Place the following tools into the folder containing your extracted files
 - run rfn to preprocess the files
-     sh ./ppg sharedTraining
-- Follow the instructions at the end of the program
+  - sh ./ppg sharedTraining
+- Follow the instructions at the end of the program to do the actual import
   
 ## Tool Roles
-rfn - Refactor File Names to retain folder structure
-pdf2html - convert PDFs to HTML
-ppg - PreProcess Google docs for Notion Import
-ppt2md - Convert PPTX files to Markdown
+- rfn - Refactor File Names to retain folder structure
+- pdf2html - convert PDFs to HTML
+- ppg - PreProcess Google docs for Notion Import
+- ppt2md - Convert PPTX files to Markdown
 
 ## Requirements
 ### For windows 
