@@ -1,0 +1,30 @@
+#/bin/bash
+########################################################################
+#
+# NAME  rfn - Refactor file names
+#
+  USAGE="./rfn <indir> <outdir> 'pattern1|pattern2|...patternN'"
+#
+# in download from googledocs
+#           
+# docx|png|jpg|jpeg|pdf|pptx|pptm|3gp|mp4|odt|m4v|xlsx
+#
+########################################################################
+
+if [ $# -lt 2 ] ; then
+  echo "Missing output directory. $USAGE"
+fi
+
+indir="$1"
+outdir="$2"
+shift 2
+mkdir -p "$outdir"
+
+du -a $indir | egrep "$*" | while read sz fle ; do
+  if [ -f "$fle" ] ; then
+    tst=`echo "$fle" | tr -d '<>–"|()-' `
+    tst=${tst//\//_}
+    echo "   in $fle out $tst"
+    cp "$fle" "$outdir/$tst"
+  fi
+done
