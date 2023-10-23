@@ -1,0 +1,135 @@
+#!/bin/bash
+##########################################################################
+#
+# FILE  ppg - Preprocess Google Doc export for Notion
+#
+  USAGE="./ppg -h | <indir>"
+#
+  DESCRIPTION="Find all files matching certain pattens. Then refactor
+              the file path names and place them into tmp* folders in 
+              current directory for import by Notion retaining original 
+              paths for rearrangement in Notion.
+              
+              The supported file types are: 
+                .docx, ,pdf, .html, .md, 
+	            .pptx, .pptm, 
+				.png,  .jpg, .jpeg, .gif,
+				.mp4,  .3gp, .m4v,   
+				.odt,
+				.html, .md, 
+				.xlsx "
+#
+##########################################################################
+
+function remind {
+  dir="$1"
+  isFiles=$(ls -A "./$dir")
+
+  if [ -n "$isFiles" ] ; then
+    case $dir in
+      tmpDocx) type="by selecting $dir files on import of google docs" ;;
+      tmpImg)  type="by dragging $dir files to Images page" ;;
+      tmpVid)  type="by dragging $dir to Videos page" ;;
+      tmpMd)   type="referring to MD.zip file on Notion import markdown dialog" ;;  
+      tmpXlsx) type="type /embed in a page then drag sheets to input control" ;;
+      *)       type="as universal" ;;
+    esac
+
+    echo "   Import ${dir:3} files into Notion ${type}."
+  fi
+}
+
+
+if [ $# -lt 1 ] ; then
+  echo "Missing source folder. USAGE: $USAGE"
+  exit
+fi
+
+case $1 in
+  -h*|--h*)
+    echo "USAGE: $USAGE
+
+  DESCRIPTION: 
+$DESCRIPTION "
+    exit
+    ;;
+esac
+
+
+function installer {
+  isIn=$(which $1)
+
+  if [ -z "$isIn" ] ; then
+    sudo apt-get install $1
+  fi  
+}
+
+installer zip
+installer pptx2md
+chmod +x rfn pdf2html ppt2md
+
+if [ "yes" = "no" ] ; then
+rm -rf tmp*
+
+echo "   --- Preprocessing googledocs files"
+  ./rfn "$1" tmpDocx '.docx'
+
+echo "   --- Preprocessing Powerpoint presentations"
+  ./rfn "$1" tmpPpt  '.pptx|.pptm'
+  ./ppt2md tmpPpt tmpMd
+
+echo "   --- Preprocessing odt files..."
+  ./rfn "$1" tmpOdt  '.odt'
+
+  if [ -n "$(ls -A ./tmpOdt)" ] ; then
+    isOffice=$(which soffice)
+
+    if [ -z "$isOffice" ] ; then
+      echo "Libreoffice is not accessible. Cannot convert ODT files"
+    else
+      mkdir -p tmpDocx
+      ( 
+        cd tmpOdt  
+        soffice --convert-to docx --outdir ../tmpDocx *.odt
+      )
+    fi
+   fi
+fi
+
+echo "   --- Preprocessing markdown files..."
+  ./rfn $1 tmpMd '.md|images'
+
+echo "   --- Preprocessing html files..."
+  ./rfn $1 tmpHtml 'htm|html'
+
+echo "   --- Preprocessing image files..."
+  ./rfn "$1" tmpImg  '.jpg|.jpeg|.png|.gif'
+
+echo "   --- Preprocessing video files..."
+  ./rfn "$1" tmpVid  '.3gp|.mp4|.m4v'
+
+echo "   --- Preprocessing PDF files..."
+  ./rfn "$1" tmpPdf  '.pdf'
+
+   if [ -n "$(ls -A ./tmpPdf)" ] ; then
+    ./pdf2html tmpPdf tmpHtml 
+   fi
+
+echo "   --- Preprocessing googlesheets"
+  ./rfn "$1" tmpXlsx
+  
+if [ -n "$(ls -A ./tmpMd)" ] ; then
+  echo "   --- zipping markdown files..."
+  (
+    cd tmpMd
+    zip -r MD.zip *.md images/*   
+  )
+fi
+
+remind tmpDocx
+remind tmpImg
+remind tmpVid
+remind tmpMd
+remind tmpHtml
+remind tmpXlsx
+echo "   --- Preprocessing complete"
