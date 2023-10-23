@@ -1,0 +1,25 @@
+#!/bin/bash
+############################################################################
+#
+# NAME pdf2html - convert a list of files from pdf to html
+#
+  USAGE="pdf2html <indir> <outdir>" 
+#
+############################################################################
+
+if [ $# -lt 2 ] ; then
+  echo "Missing arguments. USAGE $USAGE"
+  exit
+fi
+
+indir=$1
+outdir=$2
+shift 2
+mkdir -p $outdir
+
+du -a $indir | grep .pdf | while read sz fle ; do
+  out=${fle/.pdf}
+  out=${out##$indir}
+  echo "   converting $fle to $out.html"
+  mutool convert -o "$outdir/$out.html" "$fle" 
+done
